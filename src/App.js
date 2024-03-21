@@ -59,7 +59,7 @@ function App() {
 
   const onButtonSubmit = () => {
     setImageUrl(input);
-    fetch("http://localhost:3001/imageurl", {
+    fetch(process.env.BACKEND_URL + "/imageurl", {
       method: "post",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
@@ -72,7 +72,7 @@ function App() {
       const parsedResult = (JSON.parse(result));
       const regions = parsedResult.outputs[0].data.regions[0];
       setBadClarifaiResponse(false);
-      fetch("http://localhost:3001/image", {
+      fetch(process.env.BACKEND_URL + "/image", {
         method: "put",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
