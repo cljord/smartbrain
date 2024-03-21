@@ -59,7 +59,7 @@ function App() {
 
   const onButtonSubmit = () => {
     setImageUrl(input);
-    fetch(process.env.BACKEND_URL + "/imageurl", {
+    fetch("https://smartbrain-api-4360.onrender.com/imageurl", {
       method: "post",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
@@ -72,7 +72,7 @@ function App() {
       const parsedResult = (JSON.parse(result));
       const regions = parsedResult.outputs[0].data.regions[0];
       setBadClarifaiResponse(false);
-      fetch(process.env.BACKEND_URL + "/image", {
+      fetch("https://smartbrain-api-4360.onrender.com/image", {
         method: "put",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({

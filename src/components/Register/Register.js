@@ -20,7 +20,7 @@ const Register = ({onRouteChange, loadUser}) => {
   }
 
   const onRegister = () => {
-    fetch(process.env.BACKEND_URL + "/register", {
+    fetch("https://smartbrain-api-4360.onrender.com/register", {
       method: "post",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({

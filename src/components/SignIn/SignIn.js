@@ -15,7 +15,7 @@ const SignIn = ({onRouteChange, loadUser}) => {
   }
 
   const onSubmitSignIn = () => {
-    fetch(process.env.BACKEND_URL + "/signin", {
+    fetch("https://smartbrain-api-4360.onrender.com/signin", {
       method: "post",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
