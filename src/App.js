@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, {useState} from "react";
 import Navigation from "./components/Navigation/Navigation";
 import Logo from "./components/Logo/Logo";
 import ImageLinkForm from "./components/ImageLinkForm/ImageLinkForm";
@@ -9,44 +9,6 @@ import Register from "./components/Register/Register";
 import './App.css';
 
 import ParticlesBg from 'particles-bg'
-
-const returnClarifaiRequestOptions = (imageUrl) => {
-  // Your PAT (Personal Access Token) can be found in the portal under Authentification
-  const PAT = process.env.REACT_APP_CLARIFAI_PAT;
-  // Specify the correct user_id/app_id pairings
-  // Since you're making inferences outside your app's scope
-  const USER_ID = 'kriskris';
-  const APP_ID = 'Smartbrain';
-  // Change these to whatever model and image URL you want to use
-  const MODEL_ID = 'face-detection';
-  const IMAGE_URL = imageUrl;
-
-  const raw = JSON.stringify({
-      "user_app_id": {
-          "user_id": USER_ID,
-          "app_id": APP_ID
-      },
-      "inputs": [
-          {
-              "data": {
-                  "image": {
-                      "url": IMAGE_URL
-                      // "base64": IMAGE_BYTES_STRING
-                  }
-              }
-          }
-      ]
-  });
-
-  return {
-      method: 'POST',
-      headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Key ' + PAT
-      },
-      body: raw
-  };
-}
 
 function App() {
   const [input, setInput] = useState("");
@@ -61,6 +23,7 @@ function App() {
     entries: 0,
     joined: new Date()
   })
+  const [badClarifaiResponse, setBadClarifaiResponse] = useState(false);
 
   const loadUser = (user) => {
     setUser({
@@ -96,28 +59,42 @@ function App() {
 
   const onButtonSubmit = () => {
     setImageUrl(input);
-    fetch("https://api.clarifai.com/v2/models/" + "face-detection"+ "/outputs", returnClarifaiRequestOptions(input))
-    .then(response => response.json())
-    .then(result => {
-        fetch("http://localhost:3001/image", {
-          method: "put",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({
-            id: user.id
-          })
-        })
-        .then(response => response.json())
-        .then(count => {
-          setUser({...user, entries: count})
-        })
-        const regions = result.outputs[0].data.regions[0];
-        displayFaceBox(calculateFaceLocation(regions));
+    fetch("http://localhost:3001/imageurl", {
+      method: "post",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        input: input,
+      })
     })
-    .catch(error => console.log('error', error));
+    .then(response => {
+      return response.json()})
+    .then(result => {
+      const parsedResult = (JSON.parse(result));
+      const regions = parsedResult.outputs[0].data.regions[0];
+      setBadClarifaiResponse(false);
+      fetch("http://localhost:3001/image", {
+        method: "put",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          id: user.id
+        })
+      })
+      .then(response => response.json())
+      .then(count => {
+        console.log("response for setUser", count)
+        setUser({...user, entries: count.entries})
+      })
+      displayFaceBox(calculateFaceLocation(regions));
+      }
+    )
+    .catch(error => {
+      setBadClarifaiResponse(true);
+      console.log('error', error)});
   }
 
   const onRouteChange = (route) => {
     if (route === "signout") {
+      setImageUrl("");
       setIsSignedIn(false);
     } else if (route === "home") {
       setIsSignedIn(true);
@@ -127,7 +104,13 @@ function App() {
 
   return (
     <div className="App">
-    <ParticlesBg type="cobweb" bg={true} color="#ffffff"/>
+    <ParticlesBg type="cobweb" bg={{
+            position: "fixed",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: -1,
+          }} color="#ffffff"/>
       <Navigation onRouteChange={onRouteChange} isSignedIn={isSignedIn} />
       { route === "home"
         ? <div>
@@ -137,7 +120,7 @@ function App() {
               onInputChange={onInputChange}
               onButtonSubmit={onButtonSubmit}
             />
-            <FaceRecognition box={box} imageUrl={imageUrl}/>
+            <FaceRecognition box={box} imageUrl={imageUrl} badClarifaiResponse={badClarifaiResponse}/>
         </div>
         : (route === "register"
           ? <Register loadUser={loadUser} onRouteChange={onRouteChange} />

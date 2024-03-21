@@ -31,8 +31,9 @@ const Register = ({onRouteChange, loadUser}) => {
     })
     .then(response => response.json())
     .then(user => {
-      if (user) {
-        loadUser(user);
+      if (user.id) {
+        // returned user is an array, so take first entry
+        loadUser(user[0]);
         onRouteChange("home");
       }
     })
