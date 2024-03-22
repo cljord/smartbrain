@@ -31,8 +31,11 @@ const Register = ({onRouteChange, loadUser}) => {
     })
     .then(response => response.json())
     .then(user => {
+      console.log("")
+      console.log(user);
       if (user.id) {
         // returned user is an array, so take first entry
+        console.log("in user.id")
         loadUser(user[0]);
         onRouteChange("home");
       }
